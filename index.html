@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BillDrop — Stop Overpaying on Business Bills</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --blue: #2563EB; --blue-light: #EFF6FF; --blue-mid: #BFDBFE;
+      --dark: #0F172A; --gray: #64748B; --white: #FFFFFF;
+      --border: #E2E8F0; --green: #16A34A; --green-light: #F0FDF4;
+      --red: #DC2626; --red-light: #FEF2F2;
+    }
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--white); color: var(--dark); line-height: 1.65; padding-bottom: 0; }
+    nav { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 5vw; height: 72px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .logo { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+    .logo span { color: var(--blue); }
+    .nav-links { display: flex; align-items: center; gap: 28px; font-weight: 500; font-size: 15px; }
+    .nav-links a { color: var(--gray); text-decoration: none; }
+    .nav-cta { background: var(--blue); color: white; padding: 12px 28px; border-radius: 9999px; font-weight: 700; text-decoration: none; }
+
+    .hero { background: linear-gradient(165deg, #F0F9FF 0%, #FFFFFF 55%); padding: 90px 5vw 80px; text-align: center; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: white; border: 2px solid var(--blue-mid); color: var(--blue); padding: 8px 20px; border-radius: 9999px; font-size: 14px; font-weight: 700; margin-bottom: 24px; }
+    .hero h1 { font-size: clamp(36px, 6vw, 60px); font-weight: 800; line-height: 1.08; letter-spacing: -1.8px; max-width: 880px; margin: 0 auto 24px; }
+    .hero h1 .highlight { color: var(--blue); }
+    .hero h1 .underline { background: linear-gradient(180deg, transparent 65%, #FDE047 65%); padding: 0 4px; }
+    .hero p { font-size: 19px; color: var(--gray); max-width: 600px; margin: 0 auto 36px; }
+    .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary { background: var(--blue); color: white; font-weight: 700; font-size: 17px; padding: 18px 40px; border-radius: 9999px; text-decoration: none; box-shadow: 0 8px 20px rgba(37,99,235,0.25); border: none; cursor: pointer; display: inline-block; }
+    .btn-ghost { background: white; color: var(--dark); font-weight: 600; font-size: 17px; padding: 18px 40px; border-radius: 9999px; text-decoration: none; border: 2px solid var(--border); }
+    .guarantee-badge { display: inline-flex; align-items: center; gap: 8px; margin-top: 22px; font-size: 14px; font-weight: 700; color: var(--green); background: var(--green-light); border: 1px solid #86EFAC; padding: 8px 18px; border-radius: 9999px; }
+
+    .trust-bar { background: white; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 32px 5vw; display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; }
+    .trust-item { display: flex; align-items: center; gap: 14px; max-width: 200px; }
+    .trust-item span.ico { font-size: 28px; }
+    .trust-item p { font-size: 15px; font-weight: 700; margin: 0; }
+    .trust-item small { font-size: 13px; color: var(--gray); }
+
+    .stats { background: var(--blue); color: white; padding: 56px 5vw; display: flex; justify-content: center; gap: 60px; flex-wrap: wrap; }
+    .stat { text-align: center; min-width: 140px; }
+    .stat-num { font-size: 44px; font-weight: 800; letter-spacing: -1px; }
+    .stat-label { font-size: 15px; opacity: 0.9; margin-top: 6px; }
+
+    .section { padding: 90px 5vw; max-width: 1100px; margin: 0 auto; }
+    .section-tag { display: inline-block; background: var(--blue-light); color: var(--blue); font-size: 13px; font-weight: 700; letter-spacing: 1px; padding: 6px 18px; border-radius: 9999px; margin-bottom: 16px; }
+    .section h2 { font-size: clamp(30px, 5vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -1.2px; margin-bottom: 18px; }
+    .section .sub { font-size: 18px; color: var(--gray); max-width: 580px; margin-bottom: 50px; }
+
+    /* Benchmark table */
+    .benchmark-section { background: #F8FAFC; }
+    .benchmark-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 16px; border: 2px solid var(--border); background: white; }
+    table.benchmark { width: 100%; border-collapse: collapse; min-width: 640px; }
+    table.benchmark th { background: var(--dark); color: white; padding: 18px 16px; text-align: left; font-size: 14px; font-weight: 700; }
+    table.benchmark td { padding: 18px 16px; border-top: 1px solid var(--border); font-size: 15px; vertical-align: middle; }
+    table.benchmark tr:hover td { background: #F8FAFC; }
+    .price-bad { color: var(--red); font-weight: 700; text-decoration: line-through; opacity: 0.75; }
+    .price-good { color: var(--green); font-weight: 800; }
+    .price-save { background: var(--green-light); color: var(--green); padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 13.5px; display: inline-block; }
+    .benchmark-note { font-size: 13.5px; color: var(--gray); margin-top: 16px; font-style: italic; }
+
+    /* Zero disruption */
+    .nodisrupt-section { background: white; padding: 90px 5vw; }
+    .nodisrupt-wrap { max-width: 1100px; margin: 0 auto; }
+    .nodisrupt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-top: 40px; }
+    .nodisrupt-card { background: var(--green-light); border: 2px solid #86EFAC; border-radius: 16px; padding: 24px 22px; }
+    .nodisrupt-card .ico { font-size: 26px; display: block; margin-bottom: 10px; }
+    .nodisrupt-card h4 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+    .nodisrupt-card p { font-size: 14px; color: var(--gray); margin: 0; }
+    .nodisrupt-banner { background: var(--dark); color: white; border-radius: 20px; padding: 36px 32px; text-align: center; margin-top: 8px; }
+    .nodisrupt-banner h3 { font-size: clamp(22px, 3.5vw, 30px); font-weight: 800; line-height: 1.25; letter-spacing: -0.5px; }
+    .nodisrupt-banner h3 span { color: #FDE047; }
+
+    /* Trap section (existing) */
+    .trap-grid { display: grid; grid-template-columns: 1fr 380px; gap: 64px; }
+    .timeline { position: relative; }
+    .timeline::before { content: ''; position: absolute; left: 19px; top: 36px; bottom: 0; width: 3px; background: #E2E8F0; }
+    .timeline-item { display: flex; gap: 24px; position: relative; margin-bottom: 44px; }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .tl-dot { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0; background: white; border: 3px solid #CBD5E1; z-index: 2; }
+    .tl-content h4 { font-size: 19px; font-weight: 700; margin-bottom: 6px; }
+    .tl-content p { color: var(--gray); font-size: 15.5px; }
+    .trap-callout { background: var(--blue-light); border: 2px solid var(--blue-mid); border-radius: 20px; padding: 36px 30px; position: sticky; top: 90px; height: fit-content; }
+    .trap-callout h3 { font-size: 22px; font-weight: 800; line-height: 1.3; margin-bottom: 16px; }
+    .trap-stat { background: white; padding: 18px; border-radius: 14px; margin-bottom: 14px; border: 1px solid var(--border); }
+    .trap-stat-num { font-size: 30px; font-weight: 800; color: var(--blue); }
+
+    /* Services */
+    .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 22px; }
+    .service-card { background: white; border: 2px solid var(--border); border-radius: 20px; padding: 32px 26px; }
+    .service-icon { width: 52px; height: 52px; background: var(--blue-light); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 18px; }
+    .service-card h3 { font-size: 19px; font-weight: 700; margin-bottom: 10px; }
+    .service-card p { color: var(--gray); font-size: 15px; }
+
+    /* Case study */
+    .case-section { background: #F8FAFC; padding: 90px 5vw; }
+    .case-wrap { max-width: 900px; margin: 0 auto; background: white; border-radius: 24px; padding: 50px; border: 2px solid var(--border); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.08); }
+    .case-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0; }
+    .case-box { padding: 24px; border-radius: 16px; }
+    .case-before { background: var(--red-light); border: 2px solid #FECACA; }
+    .case-after { background: var(--green-light); border: 2px solid #86EFAC; }
+    .case-box .label { font-size: 12px; font-weight: 800; letter-spacing: 1.5px; }
+    .case-before .label { color: var(--red); }
+    .case-after .label { color: var(--green); }
+    .case-box .price { font-size: 36px; font-weight: 800; margin: 8px 0 4px; letter-spacing: -1px; }
+    .case-savings-bar { background: var(--blue); color: white; padding: 18px; border-radius: 14px; text-align: center; font-weight: 700; font-size: 17px; }
+
+    /* How */
+    .how-section { background: var(--white); padding: 90px 5vw; }
+    .how-inner { max-width: 1100px; margin: 0 auto; }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 22px; }
+    .step { background: white; border-radius: 20px; padding: 32px 26px; border: 2px solid var(--border); }
+    .step-num { width: 36px; height: 36px; background: var(--blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; margin-bottom: 18px; }
+
+    /* FAQ */
+    .faq-section { background: #F8FAFC; padding: 90px 5vw; }
+    .faq-wrap { max-width: 800px; margin: 0 auto; }
+    .faq { background: white; border: 2px solid var(--border); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+    .faq summary { padding: 22px 24px; font-weight: 700; font-size: 16.5px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after { content: '+'; font-size: 26px; color: var(--blue); font-weight: 400; }
+    .faq[open] summary::after { content: '−'; }
+    .faq p { padding: 0 24px 22px; color: var(--gray); font-size: 15.5px; }
+
+    /* Portal form */
+    .portal-wrap { padding: 90px 5vw; background: white; }
+    .portal-box { max-width: 620px; margin: 0 auto; background: white; border: 2px solid var(--border); border-radius: 24px; padding: 48px 40px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
+    .form-group { margin-bottom: 22px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    label { font-size: 14px; font-weight: 700; margin-bottom: 8px; display: block; }
+    input, select { width: 100%; padding: 14px 18px; border: 2px solid var(--border); border-radius: 12px; font-size: 16px; font-family: inherit; }
+    .upload-area { border: 3px dashed var(--blue-mid); background: var(--blue-light); border-radius: 16px; padding: 44px 24px; text-align: center; position: relative; cursor: pointer; }
+    .upload-area input[name="bill_file" type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .consent-box { background: var(--blue-light); border: 2px solid var(--blue-mid); padding: 22px; border-radius: 16px; margin: 24px 0; font-size: 14.5px; }
+    .checkbox-row { display: flex; align-items: flex-start; gap: 12px; margin-top: 10px; }
+    .submit-btn { width: 100%; background: var(--blue); color: white; font-size: 17px; font-weight: 700; padding: 18px; border: none; border-radius: 9999px; cursor: pointer; margin-top: 10px; }
+    .form-guarantee { text-align: center; margin-top: 14px; font-size: 13.5px; color: var(--green); font-weight: 700; }
+    .success-msg { display: none; text-align: center; padding: 40px 20px; }
+    .success-icon { font-size: 64px; margin-bottom: 20px; }
+
+    footer { background: var(--dark); color: #CBD5E1; padding: 70px 5vw 110px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 40px; }
+    footer .logo { color: white; font-size: 26px; }
+    footer a { color: #60A5FA; }
+
+    /* Sticky mobile CTA */
+    .mobile-cta { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border); padding: 12px 16px; z-index: 200; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
+    .mobile-cta a { display: block; background: var(--blue); color: white; text-align: center; padding: 16px; border-radius: 9999px; font-weight: 800; text-decoration: none; font-size: 16px; }
+    .mobile-cta small { display: block; text-align: center; font-size: 12px; color: var(--gray); margin-top: 6px; font-weight: 600; }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; height: 64px; }
+      .nav-links a:not(.nav-cta) { display: none; }
+      .nav-cta { padding: 10px 18px; font-size: 14px; }
+      .hero { padding: 70px 20px 60px; }
+      .hero h1 { font-size: 34px; letter-spacing: -1px; }
+      .hero p { font-size: 16.5px; }
+      .hero-btns { flex-direction: column; align-items: center; gap: 12px; }
+      .btn-primary, .btn-ghost { width: 100%; max-width: 340px; text-align: center; padding: 16px 28px; font-size: 16px; }
+      .trust-bar { gap: 20px; padding: 28px 20px; }
+      .stats { gap: 28px; padding: 44px 20px; }
+      .stat-num { font-size: 38px; }
+      .section, .nodisrupt-section, .how-section, .portal-wrap, .case-section, .faq-section, .benchmark-section { padding: 64px 20px; }
+      .case-wrap { padding: 30px 22px; }
+      .case-grid { grid-template-columns: 1fr; gap: 16px; }
+      .trap-grid { grid-template-columns: 1fr; gap: 32px; }
+      .trap-callout { position: static; }
+      .services-grid { grid-template-columns: 1fr; }
+      .portal-box { padding: 32px 22px; }
+      .form-row { grid-template-columns: 1fr; }
+      footer { flex-direction: column; text-align: center; padding: 50px 20px 110px; }
+      footer div[style*="text-align:right"] { text-align: center !important; }
+      .mobile-cta { display: block; }
+      body { padding-bottom: 90px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Bill<span>Drop</span></div>
+  <div class="nav-links">
+    <a href="#benchmarks">Pricing Benchmarks</a>
+    <a href="#nodisrupt">Zero Disruption</a>
+    <a href="#how">How It Works</a>
+    <a href="#portal" class="nav-cta">Free Audit</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-badge">⚡ No Savings = $0 Fee</div>
+  <h1>You're probably overpaying by <span class="underline">$3,500 a year</span>.<br/>We'll <span class="highlight">prove it — free</span>.</h1>
+  <p>Most businesses are stuck on expired promo rates, unused software, and silent price hikes. Send us one bill — internet, SaaS, AI tools, utilities, or waste — and we'll find the leaks in 48 hours.</p>
+  <div class="hero-btns">
+    <a href="#portal" class="btn-primary">Upload a Bill — Get Free Review</a>
+    <a href="#benchmarks" class="btn-ghost">See Fair-Market Rates</a>
+  </div>
+  <div><span class="guarantee-badge">✓ No savings found? You pay $0. Guaranteed.</span></div>
+</section>
+
+<div class="trust-bar">
+  <div class="trust-item"><span class="ico">🔒</span><div><p>No Upfront Cost</p><small>Only pay if we deliver savings</small></div></div>
+  <div class="trust-item"><span class="ico">⚡</span><div><p>48-Hour Turnaround</p><small>Findings sent in 2 business days</small></div></div>
+  <div class="trust-item"><span class="ico">🛠️</span><div><p>Zero IT Involvement</p><small>Nothing installed, nothing changed</small></div></div>
+  <div class="trust-item"><span class="ico">🔄</span><div><p>Same Vendors</p><small>We negotiate — never switch you</small></div></div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num">$3,500</div><div class="stat-label">Average annual savings per client</div></div>
+  <div class="stat"><div class="stat-num">35%</div><div class="stat-label">Our fee (only on savings)</div></div>
+  <div class="stat"><div class="stat-num">$0</div><div class="stat-label">Upfront cost to you</div></div>
+  <div class="stat"><div class="stat-num">48hr</div><div class="stat-label">Average turnaround</div></div>
+</div>
+
+<!-- BENCHMARK SECTION -->
+<section class="benchmark-section">
+  <div class="section" style="padding-top:0;padding-bottom:0">
+    <div class="section-tag">FAIR-MARKET RATES</div>
+    <h2 id="benchmarks">What you should actually be paying.</h2>
+    <p class="sub">Here's a quick reality check. Compare the right column to your latest bill.</p>
+
+    <div class="benchmark-wrap">
+      <table class="benchmark">
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Typical Overpriced Rate</th>
+            <th>Fair Market Rate</th>
+            <th>Avg. Monthly Savings</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Business Internet — 300 Mbps</strong></td>
+            <td><span class="price-bad">$180–$250/mo</span></td>
+            <td><span class="price-good">$90–$120/mo</span></td>
+            <td><span class="price-save">~$90</span></td>
+          </tr>
+          <tr>
+            <td><strong>Business Internet — 1 Gbps</strong></td>
+            <td><span class="price-bad">$400–$600/mo</span></td>
+            <td><span class="price-good">$200–$300/mo</span></td>
+            <td><span class="price-save">~$200</span></td>
+          </tr>
+          <tr>
+            <td><strong>VoIP / Phone (per line)</strong></td>
+            <td><span class="price-bad">$35–$50/line</span></td>
+            <td><span class="price-good">$15–$25/line</span></td>
+            <td><span class="price-save">~$15/line</span></td>
+          </tr>
+          <tr>
+            <td><strong>Microsoft 365 Business</strong></td>
+            <td><span class="price-bad">$22/user (retail)</span></td>
+            <td><span class="price-good">$15–$18/user</span></td>
+            <td><span class="price-save">~$5/user</span></td>
+          </tr>
+          <tr>
+            <td><strong>Waste pickup (1× weekly)</strong></td>
+            <td><span class="price-bad">$180–$300/mo</span></td>
+            <td><span class="price-good">$110–$160/mo</span></td>
+            <td><span class="price-save">~$100</span></td>
+          </tr>
+          <tr>
+            <td><strong>Electricity (deregulated)</strong></td>
+            <td><span class="price-bad">Variable rate</span></td>
+            <td><span class="price-good">Fixed contract</span></td>
+            <td><span class="price-save">10–25%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="benchmark-note">Rates vary by region, contract length, and provider. These are typical ranges based on bills we've reviewed across the US.</p>
+  </div>
+</section>
+
+<!-- ZERO DISRUPTION SECTION -->
+<section class="nodisrupt-section" id="nodisrupt">
+  <div class="nodisrupt-wrap">
+    <div class="nodisrupt-banner">
+      <h3>We don't switch you. We don't touch your tech.<br/><span>Your team does nothing.</span></h3>
+    </div>
+    <div class="nodisrupt-grid">
+      <div class="nodisrupt-card"><span class="ico">🔌</span><h4>No new vendors</h4><p>We negotiate with your existing providers. You keep what works.</p></div>
+      <div class="nodisrupt-card"><span class="ico">💻</span><h4>No IT involvement</h4><p>Nothing installed, configured, swapped, or rerouted. Ever.</p></div>
+      <div class="nodisrupt-card"><span class="ico">📡</span><h4>No service interruption</h4><p>Internet, software, and tools keep running while we negotiate.</p></div>
+      <div class="nodisrupt-card"><span class="ico">📝</span><h4>No contracts with us</h4><p>Month-to-month. Cancel anytime. No lock-ins, no minimums.</p></div>
+      <div class="nodisrupt-card"><span class="ico">✅</span><h4>You stay in control</h4><p>We bring you the deal. You approve it before anything changes.</p></div>
+      <div class="nodisrupt-card"><span class="ico">🔐</span><h4>Your data is safe</h4><p>Bills encrypted, never shared, deleted on request.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- TRAP SECTION -->
+<section class="section trap-section" id="trap">
+  <div class="section-tag">WHY THIS HAPPENS</div>
+  <h2>Vendors quietly raise your rates after the promo ends.</h2>
+  <p class="sub">Most increases are buried in line items and easy to miss when you're not reviewing bills monthly.</p>
+
+  <div class="trap-grid">
+    <div class="timeline">
+      <div class="timeline-item"><div class="tl-dot" style="background:#F0FDF4;border-color:#86EFAC">1</div><div class="tl-content"><h4>Initial Promotional Rate</h4><p>You sign up at a competitive introductory rate.</p></div></div>
+      <div class="timeline-item"><div class="tl-dot" style="background:#FEFCE8;border-color:#FDE047">2</div><div class="tl-content"><h4>Promo Period Ends</h4><p>The discount expires — usually without clear notification.</p></div></div>
+      <div class="timeline-item"><div class="tl-dot" style="background:#FFF1F2;border-color:#FDA4AF">3</div><div class="tl-content"><h4>Rate Quietly Increases</h4><p>Your monthly cost jumps 30%+ , buried among other line items.</p></div></div>
+      <div class="timeline-item"><div class="tl-dot" style="background:#EFF6FF;border-color:#60A5FA">4</div><div class="tl-content"><h4>BillDrop Catches It</h4><p>We spot the increase and negotiate it back down with your vendor.</p></div></div>
+    </div>
+
+    <div class="trap-callout">
+      <h3>Most businesses overpay for months — sometimes years — before anyone notices.</h3>
+      <div class="trap-stat"><div class="trap-stat-num">12</div><p><strong>Months</strong> typical promo length before standard (higher) rates kick in.</p></div>
+      <div class="trap-stat"><div class="trap-stat-num">30–50%</div><p><strong>Typical price jump</strong> once the promo ends.</p></div>
+      <a href="#portal" class="btn-primary" style="display:block;text-align:center;margin-top:20px;">Start Your Free Bill Review</a>
+    </div>
+  </div>
+</section>
+
+<!-- CASE STUDY -->
+<section class="case-section">
+  <div class="case-wrap">
+    <div class="section-tag">REAL EXAMPLE</div>
+    <h2 style="font-size:clamp(26px,4vw,36px);font-weight:800;letter-spacing:-1px;line-height:1.2;margin-bottom:8px">Marketing agency, 12 employees.</h2>
+    <p style="color:var(--gray);font-size:16px">Same provider, same 500 Mbps line — just a better rate.</p>
+    <div class="case-grid">
+      <div class="case-box case-before">
+        <div class="label">BEFORE</div>
+        <div class="price">$487<span style="font-size:16px;font-weight:600;color:var(--gray)">/mo</span></div>
+        <small style="color:var(--gray)">Expired promo, surprise fees, "regional surcharges"</small>
+      </div>
+      <div class="case-box case-after">
+        <div class="label">AFTER</div>
+        <div class="price">$229<span style="font-size:16px;font-weight:600;color:var(--gray)">/mo</span></div>
+        <small style="color:var(--gray)">Same provider, same speed, renegotiated</small>
+      </div>
+    </div>
+    <div class="case-savings-bar">💰 Annual savings: $3,096 — keeps every month, no contract change</div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="section" id="services">
+  <div class="section-tag">WHAT WE REVIEW</div>
+  <h2>The expenses where overpayment is most common.</h2>
+  <p class="sub">We focus on recurring categories where vendors quietly inflate prices over time.</p>
+  <div class="services-grid">
+    <div class="service-card"><div class="service-icon">🌐</div><h3>Internet & Telecom</h3><p>Expired promos, hidden fees, and silent rate increases — the #1 source of overpayment.</p></div>
+    <div class="service-card"><div class="service-icon">💻</div><h3>SaaS & Software</h3><p>Unused licenses, duplicated tools, and auto-renewing seats no one's using.</p></div>
+    <div class="service-card"><div class="service-icon">🤖</div><h3>AI & Productivity Tools</h3><p>Stacking subscriptions add up fast. We consolidate and negotiate volume discounts.</p></div>
+    <div class="service-card"><div class="service-icon">⚡</div><h3>Energy & Utilities</h3><p>Wrong rate plan, demand charges, missing discounts — bills are full of fixable issues.</p></div>
+    <div class="service-card"><div class="service-icon">🗑️</div><h3>Waste Management</h3><p>Auto-renewing contracts and inflated pickup pricing are extremely common.</p></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div class="how-inner">
+    <div class="section-tag">OUR PROCESS</div>
+    <h2 style="font-size:clamp(30px,5vw,44px);font-weight:800;letter-spacing:-1.2px;margin-bottom:50px">Simple, transparent, hands-off for you.</h2>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><h3>Upload Your Bill</h3><p>Send a recent invoice. PDF or photo. Takes under 2 minutes.</p></div>
+      <div class="step"><div class="step-num">2</div><h3>We Audit It</h3><p>We benchmark every line item against fair-market rates and contract terms.</p></div>
+      <div class="step"><div class="step-num">3</div><h3>We Negotiate</h3><p>We contact your vendor directly using volume leverage and retention scripts.</p></div>
+      <div class="step"><div class="step-num">4</div><h3>You Approve & Save</h3><p>You review the new offer, approve it, and keep 65% of all savings.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="faq-wrap">
+    <div class="section-tag">FREQUENTLY ASKED</div>
+    <h2 style="font-size:clamp(28px,4.5vw,40px);font-weight:800;letter-spacing:-1.2px;margin-bottom:36px">Questions, answered straight.</h2>
+
+    <details class="faq" open><summary>Do you need my account passwords?</summary><p><strong>No. We never ask for your passwords.</strong> We negotiate using a standard Letter of Authorization (LOA) or a brief verified 3-way call with your vendor. You maintain 100% security and control over your accounts at all times.</p></details>
+    <details class="faq"><summary>How do you actually lower the rate?</summary><p>We use volume leverage from our client base, retention department scripts vendors don't share publicly, and competitor quotes that aren't shown to retail customers. Most savings come from un-expiring promos, removing junk fees, and right-sizing your plan.</p></details>
+    <details class="faq"><summary>Will you switch my providers or change my service?</summary><p>No. We negotiate with your <strong>existing</strong> vendors. Same service, same speed, same login — just a lower price. If a switch ever made sense, we'd flag it for your approval — never act on it ourselves.</p></details>
+    <details class="faq"><summary>Does my IT team need to do anything?</summary><p>Nothing. No installs, no configurations, no portal access. We work entirely from the bills you send us. Your IT team won't even know we're working.</p></details>
+    <details class="faq"><summary>What do you actually need from me?</summary><p>One recent bill (PDF or photo) plus basic contact info. That's it. We handle every vendor call, email, and renegotiation.</p></details>
+    <details class="faq"><summary>What if my vendor refuses to lower the rate?</summary><p>Then you pay us nothing. Our 35% fee only applies to savings we actually secure. No savings = $0 fee. Period.</p></details>
+    <details class="faq"><summary>How is my data protected?</summary><p>Bills are encrypted in transit and at rest, accessed only by our negotiation team, never shared with third parties, and deleted on your request.</p></details>
+    <details class="faq"><summary>How do you make money?</summary><p>We charge 35% of year-one savings. That's it. No hidden fees, no markups, no kickbacks from vendors. If we don't save you money, we don't get paid.</p></details>
+  </div>
+</section>
+
+<!-- PORTAL -->
+<section class="portal-wrap" id="portal">
+  <div class="portal-box">
+    <div style="text-align:center;margin-bottom:36px">
+      <div class="section-tag">FREE BILL REVIEW</div>
+      <h2 style="font-size:clamp(26px,4vw,34px);line-height:1.2;letter-spacing:-1px">Send us a bill. We'll find the savings.</h2>
+      <p style="color:var(--gray);margin-top:10px;font-size:15.5px">Takes 2 minutes. Findings within 48 hours.</p>
+    </div>
+
+    <form id="auditForm" action="https://formspree.io/f/xyklaeog" method="POST" enctype="multipart/form-data">
+      <div class="form-row">
+        <div class="form-group"><label>First Name</label><input type="text" name="first_name" placeholder="Your first name" required></div>
+        <div class="form-group"><label>Last Name</label><input type="text" name="last_name" placeholder="Your last name" required></div>
+      </div>
+      <div class="form-group"><label>Business Name</label><input type="text" name="company_name" placeholder="Your company name" required></div>
+      <div class="form-row">
+        <div class="form-group"><label>Phone Number</label><input type="tel" name="phone" placeholder="(555) 123-4567" required></div>
+        <div class="form-group"><label>Email Address</label><input type="email" name="email" id="emailInput" placeholder="you@business.com" required></div>
+      </div>
+      <div class="form-group">
+        <label>Type of Bill</label>
+        <select name="bill_type" required>
+          <option value="">Select bill type...</option>
+          <option>Internet / Telecom</option>
+          <option>SaaS / Software</option>
+          <option>AI Tools</option>
+          <option>Energy / Utilities</option>
+          <option>Waste Management</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Upload Bill (PDF or photo)</label>
+        <div class="upload-area">
+          <input name="bill_file" type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFile(this)">
+          <p style="font-weight:600">Tap or drag your bill here</p>
+          <p style="font-size:13px;color:var(--gray)">PDF, JPG, or PNG • Max 15 MB</p>
+          <div class="file-name" id="fileName" style="margin-top:12px;font-weight:600;color:var(--blue);display:none"></div>
+          <p style="font-size:12px; color:var(--gray); margin-top:10px;">🔒 No passwords required. Your data is encrypted and private.</p>
+        </div>
+      </div>
+      <div class="consent-box">
+        <p>By submitting, you authorize BillDrop to review the provided bills and contact your vendors to explore lower rates. We charge 35% of the annual savings we secure for you. If we find no savings, the review is free.</p>
+        <div class="checkbox-row">
+          <input type="checkbox" id="consentCheck" required>
+          <label for="consentCheck" style="font-weight:500;font-size:14px">I agree to the terms above</label>
+        </div>
+      </div>
+      <button type="submit" class="submit-btn">Submit for Free Review →</button>
+      <div class="form-guarantee">✓ No savings found? You pay $0. Guaranteed.</div>
+    </form>
+
+    <div class="success-msg" id="successMsg">
+      <div class="success-icon">✅</div>
+      <h3>Thank you</h3>
+      <p>We've received your information and will send your savings analysis to <strong id="confirmEmail"></strong> within 48 hours.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>
+    <div class="logo">Bill<span>Drop</span></div>
+    <p style="margin-top:12px;max-width:280px">Helping businesses cut recurring expenses through expert bill analysis and negotiation — without changing a single vendor.</p>
+  </div>
+  <div style="text-align:right">
+    <p><a href="/cdn-cgi/l/email-protection#9aeefffbf7daf8f3f6f6fee8f5eab4f9f5"><span class="__cf_email__" data-cfemail="e89c8d8985a88a8184848c9a8798c68b87">[email&#160;protected]</span></a></p>
+    <p style="margin-top:8px">(917) 555-0199</p>
+    <p style="margin-top:36px;font-size:13px;opacity:0.6">© 2026 BillDrop</p>
+  </div>
+</footer>
+
+<!-- Sticky mobile CTA -->
+<div class="mobile-cta">
+  <a href="#portal">📎 Get Your Free Bill Review →</a>
+  <small>No savings = $0 fee. Guaranteed.</small>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  function handleFile(input) {
+    const nameEl = document.getElementById('fileName');
+    if (input.files && input.files[0]) { nameEl.textContent = '✓ ' + input.files[0].name; nameEl.style.display = 'block'; }
+  }
+  document.getElementById('auditForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = document.getElementById('emailInput').value;
+    document.getElementById('confirmEmail').textContent = email;
+    document.getElementById('auditForm').style.display = 'none';
+    document.getElementById('successMsg').style.display = 'block';
+    window.scrollTo({ top: document.getElementById('successMsg').offsetTop - 80, behavior: 'smooth' });
+  });
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+    });
+  });
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"f0f03d0605bf45f1a3b17cf7d5e6861f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
